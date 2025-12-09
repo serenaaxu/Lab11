@@ -5,6 +5,7 @@ from database.dao import DAO
 class Model:
     def __init__(self):
         self.G = nx.Graph()
+        self.id_map = {}
 
     def build_graph(self, year: int):
         """
@@ -14,6 +15,22 @@ class Model:
         :param year: anno limite fino al quale selezionare le connessioni da includere.
         """
         # TODO
+        self.G.clear()
+
+        # 1. Recupero tutti i rifugi e creo la mappa id -> Oggetto
+        all_rifugi = DAO.get_all_rifugi()
+        self.id_map = {r.id: r for r in all_rifugi}
+
+        # 2. Recupero gli archi validi
+        edges = DAO.get_edges_by_year(year)
+
+        # 3. Aggiungo gli archi al grafo.
+        # Aggiungo gli OGGETTI Rifugio, non gli ID.
+        for id1, id2 in edges:
+            if id1 in self.id_map and id2 in self.id_map:
+                node_a = self.id_map[id1]
+                node_b = self.id_map[id2]
+                self.G.add_edge(node_a, node_b)
 
     def get_nodes(self):
         """
@@ -21,6 +38,7 @@ class Model:
         :return: lista dei rifugi presenti nel grafo.
         """
         # TODO
+        return list(self.G.nodes())
 
     def get_num_neighbors(self, node):
         """
@@ -29,6 +47,7 @@ class Model:
         :return: numero di vicini diretti del nodo indicato
         """
         # TODO
+        return self.G.degree(node)
 
     def get_num_connected_components(self):
         """
@@ -36,6 +55,7 @@ class Model:
         :return: numero di componenti connesse
         """
         # TODO
+        return nx.number_connected_components(self.G)
 
     def get_reachable(self, start):
         """
@@ -55,3 +75,36 @@ class Model:
         """
 
         # TODO
+        # Tecnica 1: NetworkX BFS Tree
+        path_bfs = self._get_reachable_bfs(start)
+
+        # Tecnica 2: Algoritmo Iterativo DFS (Stack)
+        # path_dfs = self._get_reachable_iterative_dfs(start)
+
+        return path_bfs
+
+    def _get_reachable_bfs(self, start):
+        # Restituisce un Digrafo (albero), prendiamo i nodi
+        tree = nx.bfs_tree(self.G, start)
+        nodes = list(tree.nodes)
+        nodes.remove(start)  # Rimuovo il nodo di partenza
+        return nodes
+
+    def _get_reachable_iterative_dfs(self, start):
+        """Algoritmo iterativo DFS usando una lista come Stack"""
+        visited = []
+        stack = [start]  # 'da_visitare'
+
+        while stack:
+            node = stack.pop()  # Prendo l'ultimo
+            if node not in visited:
+                visited.append(node)
+                # Aggiungo i vicini non visitati
+                # Inverto l'ordine dei vicini se voglio simulare l'ordine standard
+                neighbors = list(self.G.neighbors(node))
+                for n in neighbors:
+                    if n not in visited:
+                        stack.append(n)
+
+        visited.remove(start)
+        return visited
