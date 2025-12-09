@@ -25,7 +25,7 @@ class Model:
         edges = DAO.get_edges_by_year(year)
 
         # 3. Aggiungo gli archi al grafo.
-        # Aggiungo gli OGGETTI Rifugio, non gli ID.
+        # Aggiungo gli OGGETTI Rifugio.
         for id1, id2 in edges:
             if id1 in self.id_map and id2 in self.id_map:
                 node_a = self.id_map[id1]
@@ -93,7 +93,7 @@ class Model:
     def _get_reachable_iterative_dfs(self, start):
         """Algoritmo iterativo DFS usando una lista come Stack"""
         visited = []
-        stack = [start]  # 'da_visitare'
+        stack = [start]
 
         while stack:
             node = stack.pop()  # Prendo l'ultimo

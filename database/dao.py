@@ -9,7 +9,6 @@ class DAO:
     # TODO
     @staticmethod
     def get_all_rifugi():
-        """Recupera tutti i rifugi dal database."""
         cnx = DBConnect.get_connection()
         result = []
         if cnx is None:
